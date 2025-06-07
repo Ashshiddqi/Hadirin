@@ -11,3 +11,4 @@ class User extends Model
     protected $fillable = ['name', 'email', 'gender', 'user_id'];
 
 }
+///<!-- Sc.Rifqi Ardian https://github.com/RifqiArdian09 -->

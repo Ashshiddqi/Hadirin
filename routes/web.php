@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\GenerateController;
@@ -7,14 +8,13 @@ use App\Http\Controllers\ScanController;
 use App\Http\Controllers\DailyPrintController;
 use App\Http\Controllers\MonthlyPrintController;
 use App\Http\Controllers\BulkPrintController;
-use App\Http\Controllers\PresenceController;
-use Illuminate\Support\Facades\Route;
 
+// Halaman utama
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Users Routes
+// ====================== USERS ======================
 Route::prefix('users')->group(function () {
     Route::get('/', [UsersController::class, 'index'])->name('users.index');
     Route::get('/create', [UsersController::class, 'create'])->name('users.create');
@@ -25,7 +25,7 @@ Route::prefix('users')->group(function () {
     Route::get('/{id}/presences', [UsersController::class, 'presences'])->name('users.presences');
 });
 
-// Events Routes
+// ====================== EVENTS ======================
 Route::prefix('events')->group(function () {
     Route::get('/', [EventController::class, 'index'])->name('events.index');
     Route::get('/create', [EventController::class, 'create'])->name('events.create');
@@ -36,26 +36,24 @@ Route::prefix('events')->group(function () {
     Route::get('/{event}/presences', [EventController::class, 'presences'])->name('events.presences');
 });
 
-// Generate ID Routes
+// ====================== GENERATE ======================
 Route::prefix('generate')->group(function () {
     Route::get('/id', [GenerateController::class, 'show'])->name('generate.id.show');
     Route::post('/id', [GenerateController::class, 'process'])->name('generate.id.process');
     Route::get('/barcode/download/{member_id}', [GenerateController::class, 'downloadBarcode'])->name('barcode.download');
 });
 
-// Presence Routes
-Route::prefix('scan')->group(function () {
-    Route::get('/', [ScanController::class, 'showScanner'])->name('scan.show');
-    Route::post('/handle', [ScanController::class, 'handleScan'])->name('scan.handle');
-    Route::get('/success', [ScanController::class, 'scanSuccess'])->name('scan.success');
-    Route::get('/error', [ScanController::class, 'scanError'])->name('scan.error');
-});
+// ====================== SCAN ======================
 
-// Daily Print Routes
-Route::post('/scan', [ScanController::class, 'handleScanAjax']);
-
-
-// Bulk Print Routes
+Route::get('/scan', [ScanController::class, 'showScanner'])->name('scan.show');
+Route::post('/scan/process', [ScanController::class, 'processScan'])->name('scan.process');
+Route::get('/scan/success', [ScanController::class, 'scanSuccess'])->name('scan.success');
+Route::get('/scan/error', [ScanController::class, 'scanError'])->name('scan.error');
+// ====================== PRINT ======================
 Route::prefix('print')->group(function () {
-    Route::get('/all-id', [BulkPrintController::class, 'printAll'])->name('print.all.id');
+    Route::get('/card-id', [BulkPrintController::class, 'printCard'])->name('print.card.id');
 });
+
+Route::get('/print/harian', [DailyPrintController::class, 'printHarian'])->name('print.harian');
+Route::get('/print/bulanan', [MonthlyPrintController::class, 'printBulanan'])->name('print.bulanan');
+///<!-- Sc.Rifqi Ardian https://github.com/RifqiArdian09 -->

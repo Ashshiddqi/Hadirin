@@ -12,3 +12,4 @@ class Event extends Model
         'date' => 'datetime', 
     ];
 }
+///<!-- Sc.Rifqi Ardian https://github.com/RifqiArdian09 -->

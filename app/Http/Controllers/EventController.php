@@ -7,10 +7,15 @@ use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
-    // Tampilkan daftar event
-    public function index()
+    // Tampilkan daftar event dengan search
+    public function index(Request $request)
     {
-        $events = Event::all();
+        $keyword = $request->query('search');
+
+        $events = Event::when($keyword, function ($query) use ($keyword) {
+            return $query->where('title', 'like', '%' . $keyword . '%');
+        })->get();
+
         return view('events.index', compact('events'));
     }
 
@@ -69,3 +74,4 @@ class EventController extends Controller
         return redirect()->route('events.index')->with('success', 'Event berhasil dihapus.');
     }
 }
+///<!-- Sc.Rifqi Ardian https://github.com/RifqiArdian09 -->

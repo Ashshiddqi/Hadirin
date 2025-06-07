@@ -27,3 +27,4 @@ class GenerateController extends Controller
         return redirect()->route('generate.id.show')->with('success', 'user ID berhasil digenerate.');
     }
 }
+///<!-- Sc.Rifqi Ardian https://github.com/RifqiArdian09 -->

@@ -2,30 +2,27 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-// App\Models\Presence.php
 class Presence extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
-        'event_id',
-        'scan_time',
+        'status',
+        'keterangan',
+        'scan_time'
     ];
 
     protected $casts = [
-        'scan_time' => 'datetime', // ✅ Ini penting
+        'scan_time' => 'datetime'
     ];
 
-    public function user(): BelongsTo
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
-
-    public function event(): BelongsTo
-    {
-        return $this->belongsTo(Event::class);
-    }
 }
-
+///<!-- Sc.Rifqi Ardian https://github.com/RifqiArdian09 -->

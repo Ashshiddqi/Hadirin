@@ -11,3 +11,4 @@ class Type extends Model
         'name',
     ];
 }
+///<!-- Sc.Rifqi Ardian https://github.com/RifqiArdian09 -->

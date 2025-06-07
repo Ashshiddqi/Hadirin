@@ -11,12 +11,14 @@ class CreatePresencesTable extends Migration
         Schema::create('presences', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('event_id')->nullable();
+
+            $table->enum('status', ['hadir', 'tidak hadir', 'izin', 'sakit'])->default('hadir');
+            $table->string('keterangan')->nullable();
+
             $table->dateTime('scan_time');
             $table->timestamps();
-        
+
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('event_id')->references('id')->on('events')->onDelete('set null');
         });
     }
 

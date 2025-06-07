@@ -2,101 +2,105 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Presence;
-use App\Models\Event;
-use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ScanController extends Controller
 {
+    /**
+     * Menampilkan halaman scanner QR Code
+     */
     public function showScanner()
     {
-        $activeEvent = Event::where('is_active', true)->first();
-        return view('scan.index', compact('activeEvent'));
+        return view('scan.index');
     }
 
-    public function handleScanAjax(Request $request)
+    /**
+     * Memproses hasil scan QR Code
+     */
+    public function processScan(Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|string',
-            'event_id' => 'nullable|exists:events,id'
-        ]);
+        try {
+            Log::info('Memproses permintaan scan:', $request->all());
+            
+            // Ganti find() dengan where('user_id', ...) agar cocok dengan kolom user_id
+            $user = User::where('user_id', $request->user_id)->first();
 
-        $result = $this->processScan($request->user_id, $request->event_id);
+            if (!$user) {
+                Log::error('User tidak ditemukan:', ['user_id' => $request->user_id]);
+                return redirect()->route('scan.error')->with('error', 'ID anggota tidak ditemukan.');
+            }
 
-        if ($result['status'] === 'error') {
-            return response()->json(['status' => 'error', 'message' => $result['message']]);
+            $alreadyPresent = Presence::where('user_id', $user->id)
+                ->whereDate('created_at', now()->toDateString())
+                ->exists();
+
+            if ($alreadyPresent) {
+                Log::warning('Percobaan presensi ganda:', ['user_id' => $user->id]);
+                return redirect()->route('scan.error')->with('error', 'Anda sudah melakukan presensi hari ini.');
+            }
+
+            $presenceData = [
+                'user_id' => $user->id,
+                'status' => $request->status ?? 'hadir',
+                'keterangan' => $request->keterangan,
+                'scan_time' => now()
+            ];
+
+            Log::info('Membuat data presensi:', $presenceData);
+            
+            $presence = Presence::create($presenceData);
+
+            Log::info('Presensi berhasil dibuat:', $presence->toArray());
+
+            return redirect()->route('scan.success')->with([
+                'success' => 'Presensi berhasil dicatat',
+                'data' => [
+                    'nama' => $user->name,
+                    'status' => $presence->status,
+                    'waktu' => $presence->scan_time->format('d-m-Y H:i:s')
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Gagal memproses presensi:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->route('scan.error')->with('error', 'Terjadi kesalahan sistem. Silakan coba lagi.');
         }
-
-        return response()->json(['status' => 'success']);
     }
 
-    public function handleScan(Request $request)
-    {
-        $request->validate([
-            'user_id' => 'required|string',
-            'event_id' => 'nullable|exists:events,id'
-        ]);
-
-        $result = $this->processScan($request->user_id, $request->event_id);
-
-        if ($result['status'] === 'error') {
-            return redirect()->route('scan.error')->with('message', $result['message']);
-        }
-
-        return redirect()->route('scan.success')->with([
-            'user' => $result['user'],
-            'time' => $result['time']->format('H:i:s')
-        ]);
-    }
-
-    private function processScan($userId, $eventId)
-    {
-        $user = User::where('user_id', $userId)->first();
-        if (!$user) {
-            return ['status' => 'error', 'message' => 'ID anggota tidak ditemukan'];
-        }
-
-        $now = now();
-        $alreadyScanned = Presence::where('user_id', $user->id)
-            ->when($eventId, fn($q) => $q->where('event_id', $eventId))
-            ->where('scan_time', '>', $now->subMinutes(5))
-            ->exists();
-
-        if ($alreadyScanned) {
-            return ['status' => 'error', 'message' => 'Anda sudah melakukan presensi dalam 5 menit terakhir'];
-        }
-
-        Presence::create([
-            'user_id' => $user->id,
-            'event_id' => $eventId,
-            'scan_time' => $now
-        ]);
-
-        return ['status' => 'success', 'user' => $user, 'time' => $now];
-    }
-
+    /**
+     * Menampilkan halaman sukses scan
+     */
     public function scanSuccess()
     {
-        if (!session()->has('user')) {
+        if (!session()->has('success')) {
             return redirect()->route('scan.show');
         }
 
         return view('scan.success', [
-            'user' => session('user'),
-            'time' => session('time')
+            'message' => session('success'),
+            'data' => session('data')
         ]);
     }
 
+    /**
+     * Menampilkan halaman error scan
+     */
     public function scanError()
     {
+        if (!session()->has('error')) {
+            return redirect()->route('scan.show');
+        }
+
         return view('scan.error', [
-            'message' => session('message', 'Terjadi kesalahan saat memproses presensi')
+            'message' => session('error')
         ]);
     }
-
-    
-
-    
 }
+///<!-- Sc.Rifqi Ardian https://github.com/RifqiArdian09 -->

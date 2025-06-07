@@ -64,3 +64,4 @@ class UsersController extends Controller
         return redirect()->route('users.index')->with('success', 'User berhasil dihapus.');
     }
 }
+///<!-- Sc.Rifqi Ardian https://github.com/RifqiArdian09 -->
